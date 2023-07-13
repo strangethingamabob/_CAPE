@@ -1,0 +1,3 @@
+/home/gbsbuild/gbsbuildshare/_CAPE/CAPE/build/CMakeFiles/edit_cache.dir
+/home/gbsbuild/gbsbuildshare/_CAPE/CAPE/build/CMakeFiles/rebuild_cache.dir
+/home/gbsbuild/gbsbuildshare/_CAPE/CAPE/build/CMakeFiles/cape_offline.dir

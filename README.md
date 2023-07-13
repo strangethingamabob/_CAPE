@@ -39,6 +39,18 @@ For example, if the target sequence is the 'tunnel' (assuming this was downloade
 
 ```./cape_offline 20 tunnel```
 
+Image file path is hardcoded. Change it in `run_cape_offline.cpp` around line 134.
+
+```
+// >>>>> change image file path here.
+rgb_img_path<<string_buff.str()<<"/rgb_0.png";
+depth_img_path<<string_buff.str()<<"/depth_0.png";
+```
+
+output:
+result.png in `/build`.
+A color map superimposed on the rgb image.
+
 ## Windows Instructions
 
 Tested configuration: Windows 8.1 with Visual Studio 12

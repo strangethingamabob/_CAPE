@@ -8,6 +8,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <opencv2/opencv.hpp>
+// #include #include "opencv2/highgui/highgui.hpp"
 #include <Eigen/Dense>
 #include "CAPE.h"
 
@@ -21,7 +22,7 @@ CAPE * plane_detector;
 std::vector<cv::Vec3b> color_code;
 
 bool loadCalibParameters(string filepath, cv:: Mat & intrinsics_rgb, cv::Mat & dist_coeffs_rgb, cv:: Mat & intrinsics_ir, cv::Mat & dist_coeffs_ir, cv::Mat & R, cv::Mat & T){
-
+    cerr<<"filepath: "<<filepath<<endl;
     cv::FileStorage fs(filepath,cv::FileStorage::READ);
     if (fs.isOpened()){
         fs["RGB_intrinsic_params"]>>intrinsics_rgb;
@@ -39,7 +40,7 @@ bool loadCalibParameters(string filepath, cv:: Mat & intrinsics_rgb, cv::Mat & d
 }
 
 void projectPointCloud(cv::Mat & X, cv::Mat & Y, cv::Mat & Z, cv::Mat & U, cv::Mat & V, float fx_rgb, float fy_rgb, float cx_rgb, float cy_rgb, double z_min, Eigen::MatrixXf & cloud_array){
-
+    cerr<<"project point cloud"<<endl;
     int width = X.cols;
     int height = X.rows;
 
@@ -75,7 +76,7 @@ void projectPointCloud(cv::Mat & X, cv::Mat & Y, cv::Mat & Z, cv::Mat & U, cv::M
 }
 
 void organizePointCloudByCell(Eigen::MatrixXf & cloud_in, Eigen::MatrixXf & cloud_out, cv::Mat & cell_map){
-
+    cerr<<"organize point cloud"<<endl;
     int width = cell_map.cols;
     int height = cell_map.rows;
     int mxn = width*height;
@@ -96,7 +97,7 @@ void organizePointCloudByCell(Eigen::MatrixXf & cloud_in, Eigen::MatrixXf & clou
 }
 
 int main(int argc, char ** argv){
-
+    cerr<<"main"<<endl;
     string sequence;
     int PATCH_SIZE;
     if (argc>1){
@@ -115,7 +116,9 @@ int main(int argc, char ** argv){
     cv::Mat K_rgb, K_ir, dist_coeffs_rgb, dist_coeffs_ir, R_stereo, t_stereo;
     stringstream calib_path;
     calib_path<<string_buff.str()<<"/calib_params.xml";
+    cerr<<"load calib paramters"<<endl;
     loadCalibParameters(calib_path.str(), K_rgb, dist_coeffs_rgb, K_ir, dist_coeffs_ir, R_stereo, t_stereo);
+    cerr<<"done load calib"<<endl;
     float fx_ir = K_ir.at<double>(0,0); float fy_ir = K_ir.at<double>(1,1);
     float cx_ir = K_ir.at<double>(0,2); float cy_ir = K_ir.at<double>(1,2);
     float fx_rgb = K_rgb.at<double>(0,0); float fy_rgb = K_rgb.at<double>(1,1);
@@ -127,11 +130,15 @@ int main(int argc, char ** argv){
     stringstream image_path;
     stringstream depth_img_path;
     stringstream rgb_img_path;
+
+    // >>>>> change image file path here.
     rgb_img_path<<string_buff.str()<<"/rgb_0.png";
     depth_img_path<<string_buff.str()<<"/depth_0.png";
-
+    
+    cerr<<"reading image"<<endl;
     rgb_img = cv::imread(rgb_img_path.str(),cv::IMREAD_COLOR);
-
+    
+    cerr<<"check if image has data"<<endl;
     if(rgb_img.data){
         width = rgb_img.cols;
         height = rgb_img.rows;
@@ -175,8 +182,6 @@ int main(int argc, char ** argv){
     Eigen::MatrixXf cloud_array(width*height,3);
     Eigen::MatrixXf cloud_array_organized(width*height,3);
 
-    cv::namedWindow("Seg");
-
     // Populate with random color codes
     for(int i=0; i<100;i++){
         cv::Vec3b color;
@@ -198,9 +203,11 @@ int main(int argc, char ** argv){
     color_code[53][0] = 153; color_code[53][1] = 0; color_code[53][2] = 255;
 
     // Initialize CAPE
+    cerr<<"initialize cape"<<endl;
     plane_detector = new CAPE(height, width, PATCH_SIZE, PATCH_SIZE, cylinder_detection, COS_ANGLE_MAX, MAX_MERGE_DIST);
 
     int i=0;
+    cerr<<"start while loop"<<endl;
     while(true){
 
         // Read frame i
@@ -301,7 +308,7 @@ int main(int argc, char ** argv){
                 cv::rectangle(seg_rz,  cv::Point(width/2 + 80+15*j,6),cv::Point(width/2 + 90+15*j,16), cv::Scalar(color_code[cylinder_code_offset+j][0],color_code[cylinder_code_offset+j][1],color_code[cylinder_code_offset+j][2]),-1);
             }
         }
-        cv::imshow("Seg", seg_rz);
+        cv::imwrite("./result.png", seg_rz);
         cv::waitKey(1);
         i++;
     }
